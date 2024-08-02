@@ -1,23 +1,14 @@
 #ifndef _FILA_ENC_H_
 #define _FILA_ENC_H_
 
-#define TAM_MAX_NOME 40
-#define TAM_MAX_EMAIL 25
+#include "baralho.h"
 
-typedef struct{
-   int matricula;
-   char nome[TAM_MAX_NOME];
-   char email[TAM_MAX_EMAIL];
-} Aluno;
+typedef Carta Info;
 
-typedef Aluno Info;
-
-typedef struct nodoLEnc{
+typedef struct NodoFEnc{
    Info info;
-   struct nodoLEnc *prox;
-} NodoLEnc;
-
-typedef NodoLEnc NodoFEnc;
+   struct NodoFEnc *prox;
+} NodoFEnc;
 
 typedef struct filaEnc{
    NodoFEnc *ini;

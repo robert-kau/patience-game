@@ -1,4 +1,4 @@
-#include "../include/fila_enc.h"
+#include "fila_enc.h"
 #include <stdio.h>
 #include <stdlib.h>
 
