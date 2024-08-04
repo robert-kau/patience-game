@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
+#include <time.h>
 #include "baralho.h"
 #include "fila_enc.h"
 #include "pilha_enc.h"
@@ -24,4 +25,40 @@ FilaEnc* criaBaralho()
         }
     }
     return baralho;
+}
+
+// Função para embaralhar cartas
+void embaralhaCartas(FilaEnc *fila) 
+{
+    int tamanho = tamanhoFilaEnc(fila);
+    if (tamanho <= 1) 
+        return; // Não há necessidade de embaralhar se houver 0 ou 1 carta
+
+    // Array para armazenar cartas temporariamente
+    Carta *arrayCartas = (Carta*)malloc(tamanho * sizeof(Carta));
+
+    // Remover cartas da fila e armazenar no array
+    for (int i = 0; i < tamanho; i++) 
+    {
+        arrayCartas[i] = desenfileiraFilaEnc(fila);
+    }
+
+    // Embaralhar o array de cartas
+    srand(time(NULL));
+    for (int i = 0; i < tamanho; i++) 
+    {
+        int j = rand() % tamanho;
+        Carta temp = arrayCartas[i];
+        arrayCartas[i] = arrayCartas[j];
+        arrayCartas[j] = temp;
+    }
+
+    // Reinserir cartas na fila
+    for (int i = 0; i < tamanho; i++) 
+    {
+        enfileiraFilaEnc(fila, arrayCartas[i]);
+    }
+
+    // Liberar memória do array temporário
+    free(arrayCartas);
 }

@@ -54,3 +54,47 @@ int vaziaFilaEnc(FilaEnc *fila){
    return (fila->ini == NULL);
 }
 
+// Função para obter o número de cartas na fila utilizando apenas as funções de enfileirar e desenfileirar
+int tamanhoFilaEnc(FilaEnc *fila) 
+{
+    int tamanho = 0;
+    FilaEnc *tempFila = criaFilaEnc();
+    
+    while (!vaziaFilaEnc(fila)) 
+    {
+        Carta carta = desenfileiraFilaEnc(fila);
+        enfileiraFilaEnc(tempFila, carta);
+        tamanho++;
+    }
+    
+    while (!vaziaFilaEnc(tempFila)) 
+    {
+        Carta carta = desenfileiraFilaEnc(tempFila);
+        enfileiraFilaEnc(fila, carta);
+    }
+
+    destroiFilaEnc(tempFila);
+    return tamanho;
+}
+
+// Função para imprimir uma fila
+void imprimeFilaEnc(FilaEnc *fila) 
+{
+    FilaEnc *tempFila = criaFilaEnc();
+    
+    while (!vaziaFilaEnc(fila)) 
+    {
+        Carta carta = desenfileiraFilaEnc(fila);
+        enfileiraFilaEnc(tempFila, carta);
+        printf("%c | %d\n", carta.naipe, carta.valor);
+
+    }
+
+    while (!vaziaFilaEnc(tempFila)) 
+    {
+        Carta carta = desenfileiraFilaEnc(tempFila);
+        enfileiraFilaEnc(fila, carta);
+    }
+
+    destroiFilaEnc(tempFila);
+}

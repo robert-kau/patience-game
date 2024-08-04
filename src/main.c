@@ -1,20 +1,14 @@
 #include <stdio.h>
-#include <string.h>
 #include "baralho.h"
 #include "fila_enc.h"
 #include "pilha_enc.h"
+#include "paciencia.h"
 
-int main(){
 
-criaBaralho();
-   FilaEnc *baralho_compra = NULL;
-   baralho_compra = criaBaralho();
 
-   Carta infoAux;
-   while (!vaziaFilaEnc(baralho_compra)){
-      infoAux = desenfileiraFilaEnc(baralho_compra);
-      printf("%c | %d\n", infoAux.naipe, infoAux.valor);   
-   }
+int main()
+{
+    montaJogo();
 
-   return 0;
+    return 0;
 }

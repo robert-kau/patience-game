@@ -11,4 +11,7 @@ struct filaEnc;
 // Funcao que cria um baralho
 struct filaEnc* criaBaralho();
 
+// Função para embaralhar cartas
+void embaralhaCartas(struct filaEnc *fila);
+
 #endif

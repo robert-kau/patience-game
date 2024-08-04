@@ -30,5 +30,11 @@ Info desenfileiraFilaEnc(FilaEnc *fila);
 // Funcao que determina se uma fila eh vazia
 int vaziaFilaEnc(FilaEnc* fila);
 
+// Função para obter o número de cartas na fila utilizando apenas as funções de enfileirar e desenfileirar
+int tamanhoFilaEnc(FilaEnc *fila);
+
+// Função para imprimir uma fila
+void imprimeFilaEnc(FilaEnc *fila);
+
 
 #endif
