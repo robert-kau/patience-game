@@ -4,6 +4,8 @@
 #include "fila_enc.h"
 #include "pilha_enc.h"
 #include "paciencia.h"
+#include "display.h"
+
 
 Coluna coluna[NUM_COLUNAS];
 
@@ -105,7 +107,9 @@ void montaJogo(void)
 
     populaColunas(baralhoCartas);
 
-    imprimeTodasColunas(coluna, NUM_COLUNAS);
+    //imprimeTodasColunas(coluna, NUM_COLUNAS);
+
+    desenha_colunas(coluna);
 
 }
 

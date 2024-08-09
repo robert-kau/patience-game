@@ -13,6 +13,7 @@ OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 # Compilador e flags
 CC = gcc
 CFLAGS = -I$(INCLUDE_DIR) -Wall -Wextra -Werror
+LDFLAGS = -lncurses
 
 # Regra padrao
 all: $(BUILD_DIR) $(TARGET)
@@ -23,7 +24,7 @@ $(BUILD_DIR):
 
 # Regra para compilar o executavel
 $(TARGET): $(OBJS)
-	$(CC) $(OBJS) -o $(TARGET)
+	$(CC) $(OBJS) -o $(TARGET) $(LDFLAGS)
 
 # Regra para compilar os arquivos objeto
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
