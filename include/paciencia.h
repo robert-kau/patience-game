@@ -7,6 +7,7 @@
 
 struct FilaEnc;
 struct PilhaEnc;
+struct Carta;
 
 typedef FilaEnc Baralho;
 
@@ -22,6 +23,12 @@ typedef struct
     PilhaEnc *copas;
     PilhaEnc *ouros;
 } Fundacao;
+
+typedef struct {
+   Baralho *oculto;
+   Baralho *visualizado;
+   Carta cartaVisivel;
+} MonteCompra;
 
 void montaJogo(void);
 

@@ -11,6 +11,8 @@ Coluna coluna[NUM_COLUNAS];
 
 Fundacao fundacao;
 
+MonteCompra monte;
+
 Baralho *baralhoCartas;
 
 void criaColunas(void)
@@ -30,6 +32,53 @@ void criaFundacoes(void)
     fundacao.paus = criaPilhaEnc();
     fundacao.copas = criaPilhaEnc();
     fundacao.ouros = criaPilhaEnc();
+}
+
+void criaMonteCompra(Baralho *baralhoCartas)
+{
+    monte.oculto = criaFilaEnc();
+    monte.visualizado = criaFilaEnc();
+    monte.cartaVisivel.valor = 0;
+
+    //move baralho restante para monte oculto
+    while (!vaziaFilaEnc(baralhoCartas)) 
+    {
+        Carta carta = desenfileiraFilaEnc(baralhoCartas);
+        enfileiraFilaEnc(monte.oculto, carta);
+    }
+}
+
+void compraCarta(void)
+{
+    if(!vaziaFilaEnc(monte.oculto))
+    {
+        //ha cartas para exibir
+
+        if(monte.cartaVisivel.valor != 0)
+        {
+            //ja ha carta visivel -> mover para monte visualizado
+            enfileiraFilaEnc(monte.visualizado, monte.cartaVisivel);
+        }
+
+        //sera exibida a proxima carta
+        monte.cartaVisivel = desenfileiraFilaEnc(monte.oculto);    
+    }
+    else
+    {
+        //todas cartas exibidas
+
+        //move baralho visualizado para monte oculto
+        while (!vaziaFilaEnc(monte.visualizado)) 
+        {
+            Carta carta = desenfileiraFilaEnc(monte.visualizado);
+            enfileiraFilaEnc(monte.oculto, carta);
+        }
+
+        //move carta visivel para monte oculto
+        enfileiraFilaEnc(monte.oculto, monte.cartaVisivel);
+        //sinaliza que nao ha carta visivel
+        monte.cartaVisivel.valor = 0;
+    }
 }
 
 void populaColunas(Baralho *baralhoCartas)
@@ -93,7 +142,10 @@ void imprimeTodasColunas(Coluna colunas[], int numColunas) {
     }
 }
 
-
+void gameLoop(void)
+{
+    getUserCmd();
+}
 
 void montaJogo(void)
 {
@@ -107,9 +159,16 @@ void montaJogo(void)
 
     populaColunas(baralhoCartas);
 
-    //imprimeTodasColunas(coluna, NUM_COLUNAS);
+    criaMonteCompra(baralhoCartas);
+
+    desenha_estoque_compra(&monte);
+
+    compraCarta();
+
+    desenha_estoque_compra(&monte);
 
     desenha_colunas(coluna);
 
+    gameLoop();
 }
 

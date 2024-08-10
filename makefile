@@ -13,7 +13,7 @@ OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 # Compilador e flags
 CC = gcc
 CFLAGS = -I$(INCLUDE_DIR) -Wall -Wextra -Werror
-LDFLAGS = -lncurses
+LDFLAGS = -lncursesw
 
 # Regra padrao
 all: $(BUILD_DIR) $(TARGET)

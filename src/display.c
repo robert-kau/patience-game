@@ -3,6 +3,7 @@
 #include "fila_enc.h"
 #include "pilha_enc.h"
 #include "paciencia.h"
+#include <locale.h>
 
 
 #define BLACK_PAIR 1
@@ -18,10 +19,13 @@
 #define MAX_COL DEFAULT_COL_TERMINAL
 
 #define START_LINE_SEVEN_COL 5
-#define START_COL_SEVEN_COL 16
+#define START_COL_SEVEN_COL 10
 
-#define SIZE_CARD 4
+#define SIZE_CARD 6
 #define DISTANCE_SEVEN_COL (SIZE_CARD + 4)
+
+#define LINE_STOCK 2
+#define COL_STOCK 10
 
 
 void draw_rectangle(int start_y, int start_x, int height, int width) 
@@ -39,6 +43,9 @@ void draw_rectangle(int start_y, int start_x, int height, int width)
     mvaddch(start_y, start_x + width - 1, ACS_URCORNER); // Canto superior direito
     mvaddch(start_y + height - 1, start_x, ACS_LLCORNER); // Canto inferior esquerdo
     mvaddch(start_y + height - 1, start_x + width - 1, ACS_LRCORNER); // Canto inferior direito
+
+    // Atualiza a tela
+    refresh();
 }
 
 void fill_rectangle(int start_y, int start_x, int height, int width) 
@@ -49,6 +56,9 @@ void fill_rectangle(int start_y, int start_x, int height, int width)
         mvhline(y, start_x + 1, ' ', width - 2);
     }
     attroff(COLOR_PAIR(BLACK_PAIR));
+
+    // Atualiza a tela
+    refresh();
 }
 
 
@@ -67,10 +77,57 @@ const char* valor_para_string(char valor) {
     }
 }
 
+// Função para converter o naipe da carta em sua representacao 
+const char* caracter_para_naipe(char naipe) {
+    switch (naipe) {
+        case 'C': return "\u2665";
+        case 'E': return "\u2660";
+        case 'O': return "\u2666";
+        case 'P': return "\u2663";
+        default: return "ERRO";
+    }
+}
+
+// Função para exibir as colunas no terminal
+void desenha_estoque_compra(MonteCompra *monte) 
+{
+    attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
+
+    if(!vaziaFilaEnc(monte->oculto))
+    {
+        mvprintw(LINE_STOCK, COL_STOCK, "[ ?? ]");
+    }
+    else
+    {
+        mvprintw(LINE_STOCK, COL_STOCK, "[    ]");
+    }
+
+    if(monte->cartaVisivel.valor != 0) //ha carta visivel para ser exibida
+    {
+        if (monte->cartaVisivel.naipe == 'C' || monte->cartaVisivel.naipe == 'O') 
+        {
+            attron(COLOR_PAIR(RED_PAIR)); // Ativando a cor vermelha
+        }
+        else
+        {
+            attron(COLOR_PAIR(BLACK_PAIR)); // Ativando a cor preta
+        }
+        mvprintw(LINE_STOCK, COL_STOCK + DISTANCE_SEVEN_COL, "[ %s%s ]", valor_para_string(monte->cartaVisivel.valor), caracter_para_naipe(monte->cartaVisivel.naipe));
+    }
+    else
+    {
+        //desenha monte visualizado vazio
+        attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
+        mvprintw(LINE_STOCK, COL_STOCK + DISTANCE_SEVEN_COL, "[    ]");
+    }
+
+    refresh();  // Atualizando a tela para exibir as mudancas
+
+}
+
 // Função para exibir as colunas no terminal
 void desenha_colunas(Coluna coluna[7]) 
 {
-
     PilhaEnc *tempPilha = criaPilhaEnc();
     FilaEnc *tempFila = criaFilaEnc();
 
@@ -99,7 +156,7 @@ void desenha_colunas(Coluna coluna[7])
             //mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "I[%s%c]", valor_para_string(carta.valor), carta.naipe);
             
             attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
-            mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "I[??]");
+            mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "[ ?? ]");
             row++;
         }
         // recupera pilha
@@ -122,7 +179,7 @@ void desenha_colunas(Coluna coluna[7])
             {
                 attron(COLOR_PAIR(BLACK_PAIR)); // Ativando a cor preta
             }
-            mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "V[%s%c]", valor_para_string(carta.valor), carta.naipe);
+            mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "[ %s%s ]", valor_para_string(carta.valor), caracter_para_naipe(carta.naipe));
             row++;
         }
         // recupera fila
@@ -133,14 +190,17 @@ void desenha_colunas(Coluna coluna[7])
         }
     }
     refresh();  // Atualizando a tela para exibir as mudanças
+}
+
+void getUserCmd(void)
+{
     getch();
     endwin();
-
-
 }
 
 void initDisplay(void)
 {
+    setlocale(LC_CTYPE, "");
     // Inicializa a ncurses
     initscr();
     start_color();
@@ -160,15 +220,5 @@ void initDisplay(void)
     draw_rectangle(0, 0, MAX_LINES, MAX_COL);
     fill_rectangle(0, 0, MAX_LINES, MAX_COL);
 
-    // Atualiza a tela
-    refresh();
-
-
-    // // Espera o usuário pressionar uma tecla
-    // getch();
-
-    // // Finaliza a ncurses
-    // endwin();
 }
-
 
