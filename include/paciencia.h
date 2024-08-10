@@ -18,10 +18,8 @@ typedef struct {
 
 typedef struct
 {
-    PilhaEnc *espadas;
-    PilhaEnc *paus;
-    PilhaEnc *copas;
-    PilhaEnc *ouros;
+    PilhaEnc *cartas;
+    char naipe;
 } Fundacao;
 
 typedef struct {

@@ -36,5 +36,7 @@ int tamanhoFilaEnc(FilaEnc *fila);
 // Função para imprimir uma fila
 void imprimeFilaEnc(FilaEnc *fila);
 
+// Função que retorna o nodo do final de uma fila
+Info finalFilaEnc(FilaEnc *fila);
 
 #endif

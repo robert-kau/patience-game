@@ -11,9 +11,12 @@ struct MonteCompra;
 
 void initDisplay(void);
 
-void desenha_colunas(Coluna coluna[7]);
+void desenhaColunas(Coluna coluna[]);
 
-void desenha_estoque_compra(MonteCompra *monte);
+void desenhaMonteCompra(MonteCompra *monte);
+
+void desenhaFundacoes(Fundacao fundacao[]);
+
 
 void getUserCmd(void);
 

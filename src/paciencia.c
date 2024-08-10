@@ -7,9 +7,10 @@
 #include "display.h"
 
 
+
 Coluna coluna[NUM_COLUNAS];
 
-Fundacao fundacao;
+Fundacao fundacao[NUM_FUNDACOES];
 
 MonteCompra monte;
 
@@ -28,10 +29,12 @@ void criaColunas(void)
 
 void criaFundacoes(void)
 {
-    fundacao.espadas = criaPilhaEnc();
-    fundacao.paus = criaPilhaEnc();
-    fundacao.copas = criaPilhaEnc();
-    fundacao.ouros = criaPilhaEnc();
+    int i;
+    for(i = 0; i < NUM_FUNDACOES; i++)
+    {
+        fundacao[i].cartas = criaPilhaEnc();
+        fundacao[i].naipe = 0;
+    }
 }
 
 void criaMonteCompra(Baralho *baralhoCartas)
@@ -142,6 +145,90 @@ void imprimeTodasColunas(Coluna colunas[], int numColunas) {
     }
 }
 
+int insereCartaFundacao(Carta carta, int indiceFundacao)
+{
+    //TODO: adicionar regra da progressao de valor
+
+    if((indiceFundacao < 0) || (indiceFundacao >= NUM_FUNDACOES))
+    {
+        //indice fora da faixa valida
+        return -1;
+    }
+
+    // Verifica se ja existe uma fundacao com o mesmo naipe diferente da escolhida
+    for(int i = 0; i < NUM_FUNDACOES; i++)
+    {
+        if(fundacao[i].naipe == carta.naipe && indiceFundacao != i)
+        {
+            return -1; // Ja ha outra fundacao com o mesmo naipe
+        }
+    }
+
+    // Verifica se a fundacao escolhida esta vazia ou possui o mesmo naipe
+    if(fundacao[indiceFundacao].naipe == 0 || fundacao[indiceFundacao].naipe == carta.naipe)
+    {
+        if(fundacao[indiceFundacao].naipe == 0)
+        {
+            fundacao[indiceFundacao].naipe = carta.naipe; // Define o naipe na fundacao se estiver vazia
+        }
+
+        empilhaPilhaEnc(fundacao[indiceFundacao].cartas, carta); // Empilha a carta
+        
+        return 0;
+    }
+    else
+    {
+        return -1; // Nao pode empilhar carta de naipe diferente
+    }
+}
+
+// Funcao que verifica se cartas formarao cores intercaladas
+int seqValidaNaipes(char naipeOrigem, char naipeNovo)
+{
+    return ((((naipeOrigem == 'P') || (naipeOrigem == 'E')) && 
+    ((naipeNovo == 'C') || (naipeNovo == 'O'))) || 
+    (((naipeOrigem == 'C') || (naipeOrigem == 'O')) && 
+    ((naipeNovo == 'P') || (naipeNovo == 'E'))));
+}
+
+int insereCartaColuna(Carta carta, int indiceColuna)
+{
+    if((indiceColuna < 0) || (indiceColuna >= NUM_COLUNAS))
+    {
+        //indice fora da faixa valida
+        return -1;
+    }
+
+    //verifica se coluna esta completamente vazia
+    if(vaziaPilhaEnc(coluna[indiceColuna].faceDown) && vaziaFilaEnc(coluna[indiceColuna].faceUp))
+    {
+        //so pode mover rei para coluna vazia
+        if(carta.valor != 13)
+        {
+            return -1;
+        }
+    }
+    else //caso normal
+    {
+        //obtem ultima carta visivel da coluna
+        Carta cartaFinal = finalFilaEnc(coluna[indiceColuna].faceUp);
+
+        // verifica se cartas formam sequencia decrescente e cores intercaladas
+        if ((cartaFinal.valor == carta.valor - 1) && seqValidaNaipes(cartaFinal.naipe, carta.naipe))
+        {
+            //cumpre requisitos de sequencia
+            enfileiraFilaEnc(coluna[indiceColuna].faceUp, carta);
+        }
+        else
+        {
+            //nao cumpre requisitos de sequencia
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 void gameLoop(void)
 {
     getUserCmd();
@@ -161,13 +248,13 @@ void montaJogo(void)
 
     criaMonteCompra(baralhoCartas);
 
-    desenha_estoque_compra(&monte);
+    desenhaMonteCompra(&monte);
 
-    compraCarta();
+    desenhaMonteCompra(&monte);
 
-    desenha_estoque_compra(&monte);
+    desenhaColunas(coluna);
 
-    desenha_colunas(coluna);
+    desenhaFundacoes(fundacao);
 
     gameLoop();
 }

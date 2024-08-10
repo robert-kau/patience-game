@@ -27,6 +27,9 @@
 #define LINE_STOCK 2
 #define COL_STOCK 10
 
+#define LINE_FUND 2
+#define COL_FUND 30
+
 
 void draw_rectangle(int start_y, int start_x, int height, int width) 
 {
@@ -88,8 +91,45 @@ const char* caracter_para_naipe(char naipe) {
     }
 }
 
+void desenhaFundacoes(Fundacao fundacao[NUM_FUNDACOES])
+{
+    int i;
+
+    for(i = 0; i < NUM_FUNDACOES; i++)
+    {
+        if(!vaziaPilhaEnc(fundacao[i].cartas))
+        {
+            //ha cartas na fundacao para serem exibidas -> exibe o topo
+
+            Carta carta = desempilhaPilhaEnc(fundacao[i].cartas);
+
+            empilhaPilhaEnc(fundacao[i].cartas, carta);
+
+            if (carta.naipe == 'C' || carta.naipe == 'O') 
+            {
+                attron(COLOR_PAIR(RED_PAIR)); // Ativando a cor vermelha
+            }
+            else
+            {
+                attron(COLOR_PAIR(BLACK_PAIR)); // Ativando a cor preta
+            }
+            mvprintw(LINE_FUND, COL_FUND + DISTANCE_SEVEN_COL * i, "[ %s%s ]", valor_para_string(carta.valor), caracter_para_naipe(carta.naipe));
+ 
+        }
+        else
+        {
+            attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
+
+            mvprintw(LINE_FUND, COL_FUND + DISTANCE_SEVEN_COL * i, "[    ]");
+
+        }
+    }
+
+    refresh();  // Atualizando a tela para exibir as mudancas
+}
+
 // Função para exibir as colunas no terminal
-void desenha_estoque_compra(MonteCompra *monte) 
+void desenhaMonteCompra(MonteCompra *monte) 
 {
     attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
 
@@ -126,7 +166,7 @@ void desenha_estoque_compra(MonteCompra *monte)
 }
 
 // Função para exibir as colunas no terminal
-void desenha_colunas(Coluna coluna[7]) 
+void desenhaColunas(Coluna coluna[NUM_COLUNAS]) 
 {
     PilhaEnc *tempPilha = criaPilhaEnc();
     FilaEnc *tempFila = criaFilaEnc();
@@ -135,7 +175,7 @@ void desenha_colunas(Coluna coluna[7])
 
 
     // Desenhando as colunas
-    for (int col = 0; col < 7; col++) 
+    for (int col = 0; col < NUM_COLUNAS; col++) 
     {
         row = 0;
 

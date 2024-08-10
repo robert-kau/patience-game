@@ -98,3 +98,25 @@ void imprimeFilaEnc(FilaEnc *fila)
 
     destroiFilaEnc(tempFila);
 }
+
+Info finalFilaEnc(FilaEnc *fila) 
+{
+    FilaEnc *tempFila = criaFilaEnc();
+    Carta ultimaCarta = {.valor = 0};
+
+    while (!vaziaFilaEnc(fila)) 
+    {
+        ultimaCarta = desenfileiraFilaEnc(fila);
+        enfileiraFilaEnc(tempFila, ultimaCarta);
+    }
+
+    while (!vaziaFilaEnc(tempFila)) 
+    {
+        Carta carta = desenfileiraFilaEnc(tempFila);
+        enfileiraFilaEnc(fila, carta);
+    }
+
+    destroiFilaEnc(tempFila);
+
+    return ultimaCarta;
+}
