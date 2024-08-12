@@ -12,5 +12,8 @@ int main()
     initDisplay();
     montaJogo();
 
+    gameLoop();
+
+
     return 0;
 }

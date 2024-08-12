@@ -17,8 +17,12 @@ void desenhaMonteCompra(MonteCompra *monte);
 
 void desenhaFundacoes(Fundacao fundacao[]);
 
-
 void getUserCmd(void);
+
+void promptComando(void); 
+
+void exibeMsgStatus(const char* msg);
+
 
 
 #endif

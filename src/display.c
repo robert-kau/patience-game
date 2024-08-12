@@ -1,4 +1,6 @@
 #include <ncurses.h>
+#include <string.h>
+#include <stdlib.h>
 #include "baralho.h"
 #include "fila_enc.h"
 #include "pilha_enc.h"
@@ -19,17 +21,59 @@
 #define MAX_COL DEFAULT_COL_TERMINAL
 
 #define START_LINE_SEVEN_COL 5
-#define START_COL_SEVEN_COL 10
+#define START_COL_SEVEN_COL 6
 
-#define SIZE_CARD 6
-#define DISTANCE_SEVEN_COL (SIZE_CARD + 4)
+#define SIZE_CARD 7
+#define DISTANCE_SEVEN_COL (SIZE_CARD + 3)
 
 #define LINE_STOCK 2
-#define COL_STOCK 10
+#define COL_STOCK 6
 
 #define LINE_FUND 2
-#define COL_FUND 30
+#define COL_FUND 26
 
+#define LINE_PROMPT  MAX_LINES-3
+#define COL_PROMPT  2
+#define COL_CMD  (int)(COL_PROMPT + strlen(MSG_CMD))
+
+
+#define MSG_CMD "Digite um movimento: "
+#define MSG_STATUS "Status: "
+
+#define LINE_STATUS (LINE_PROMPT + 1)
+#define COL_STATUS COL_PROMPT
+#define COL_MSG_STATUS (int)(COL_PROMPT + strlen(MSG_STATUS))
+
+#define MAX_CMD_SIZE 50
+
+
+void exibeMsgStatus(const char* msg)
+{
+    mvprintw(LINE_STATUS, COL_MSG_STATUS, "%*s", MAX_COL - COL_MSG_STATUS, " "); 
+    mvprintw(LINE_STATUS, COL_MSG_STATUS, "%s", msg);
+
+    refresh();
+}
+
+void promptComando(void) 
+{
+    // Apaga a linha anterior
+    mvprintw(LINE_PROMPT, COL_PROMPT, "%*s", MAX_COL - COL_PROMPT, " ");
+
+    // Exibe a mensagem 
+    mvprintw(LINE_PROMPT, COL_PROMPT, MSG_CMD);
+
+    mvprintw(LINE_STATUS, COL_STATUS, MSG_STATUS);
+    
+    move(LINE_PROMPT, COL_CMD);
+
+    // Captura o comando do usuario
+    char comando[MAX_CMD_SIZE]; // Tamanho do buffer pode ser ajustado conforme necessario
+    getstr(comando);  // Le a string digitada pelo usuario
+
+    // Processa o comando
+    processaComando(comando);
+}
 
 void draw_rectangle(int start_y, int start_x, int height, int width) 
 {
@@ -113,14 +157,14 @@ void desenhaFundacoes(Fundacao fundacao[NUM_FUNDACOES])
             {
                 attron(COLOR_PAIR(BLACK_PAIR)); // Ativando a cor preta
             }
-            mvprintw(LINE_FUND, COL_FUND + DISTANCE_SEVEN_COL * i, "[ %s%s ]", valor_para_string(carta.valor), caracter_para_naipe(carta.naipe));
+            mvprintw(LINE_FUND, COL_FUND + DISTANCE_SEVEN_COL * i, "[ %-2s%s ]", valor_para_string(carta.valor), caracter_para_naipe(carta.naipe));
  
         }
         else
         {
             attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
 
-            mvprintw(LINE_FUND, COL_FUND + DISTANCE_SEVEN_COL * i, "[    ]");
+            mvprintw(LINE_FUND, COL_FUND + DISTANCE_SEVEN_COL * i, "[     ]");
 
         }
     }
@@ -135,11 +179,11 @@ void desenhaMonteCompra(MonteCompra *monte)
 
     if(!vaziaFilaEnc(monte->oculto))
     {
-        mvprintw(LINE_STOCK, COL_STOCK, "[ ?? ]");
+        mvprintw(LINE_STOCK, COL_STOCK, "[  ?  ]");
     }
     else
     {
-        mvprintw(LINE_STOCK, COL_STOCK, "[    ]");
+        mvprintw(LINE_STOCK, COL_STOCK, "[     ]");
     }
 
     if(monte->cartaVisivel.valor != 0) //ha carta visivel para ser exibida
@@ -152,13 +196,13 @@ void desenhaMonteCompra(MonteCompra *monte)
         {
             attron(COLOR_PAIR(BLACK_PAIR)); // Ativando a cor preta
         }
-        mvprintw(LINE_STOCK, COL_STOCK + DISTANCE_SEVEN_COL, "[ %s%s ]", valor_para_string(monte->cartaVisivel.valor), caracter_para_naipe(monte->cartaVisivel.naipe));
+        mvprintw(LINE_STOCK, COL_STOCK + DISTANCE_SEVEN_COL, "[ %-2s%s ]", valor_para_string(monte->cartaVisivel.valor), caracter_para_naipe(monte->cartaVisivel.naipe));
     }
     else
     {
         //desenha monte visualizado vazio
         attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
-        mvprintw(LINE_STOCK, COL_STOCK + DISTANCE_SEVEN_COL, "[    ]");
+        mvprintw(LINE_STOCK, COL_STOCK + DISTANCE_SEVEN_COL, "[     ]");
     }
 
     refresh();  // Atualizando a tela para exibir as mudancas
@@ -168,43 +212,41 @@ void desenhaMonteCompra(MonteCompra *monte)
 // Função para exibir as colunas no terminal
 void desenhaColunas(Coluna coluna[NUM_COLUNAS]) 
 {
-    PilhaEnc *tempPilha = criaPilhaEnc();
+    // PilhaEnc *tempPilha = criaPilhaEnc();
     FilaEnc *tempFila = criaFilaEnc();
 
-    int row = 0;
-
+    int row, col;
 
     // Desenhando as colunas
-    for (int col = 0; col < NUM_COLUNAS; col++) 
+    for (col = 0; col < NUM_COLUNAS; col++) 
     {
         row = 0;
 
         // Imprime cartas ocultas
-        while (!vaziaPilhaEnc(coluna[col].faceDown)) 
+
+        attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
+
+        for(row = 0; row < coluna[col].numCartasfaceDown; row++)
         {
-            Carta carta = desempilhaPilhaEnc(coluna[col].faceDown);
-            empilhaPilhaEnc(tempPilha, carta);
-            //printf("%c | %d\n", carta.naipe, carta.valor);
-            // if (carta.naipe == 'C' || carta.naipe == 'O') 
-            // {
-            //     attron(COLOR_PAIR(RED_PAIR)); // Ativando a cor vermelha
-            // }
-            // else
-            // {
-            //     attron(COLOR_PAIR(BLACK_PAIR)); // Ativando a cor preta
-            // }
-            //mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "I[%s%c]", valor_para_string(carta.valor), carta.naipe);
-            
-            attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
-            mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "[ ?? ]");
-            row++;
+            mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "[  ?  ]");
         }
-        // recupera pilha
-        while (!vaziaPilhaEnc(tempPilha)) 
-        {
-            Carta carta = desempilhaPilhaEnc(tempPilha);
-            empilhaPilhaEnc(coluna[col].faceDown, carta);
-        }
+
+        // while (!vaziaPilhaEnc(coluna[col].faceDown)) 
+        // {
+        //     //TODO: otimiza contando apenas numero de tamanho da pilha
+        //     Carta carta = desempilhaPilhaEnc(coluna[col].faceDown);
+        //     empilhaPilhaEnc(tempPilha, carta);
+
+        //     attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
+        //     mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "[  ?  ]");
+        //     row++;
+        // }
+        // // recupera pilha
+        // while (!vaziaPilhaEnc(tempPilha)) 
+        // {
+        //     Carta carta = desempilhaPilhaEnc(tempPilha);
+        //     empilhaPilhaEnc(coluna[col].faceDown, carta);
+        // }
 
         // Imprime cartas visivies
         while (!vaziaFilaEnc(coluna[col].faceUp)) 
@@ -219,7 +261,7 @@ void desenhaColunas(Coluna coluna[NUM_COLUNAS])
             {
                 attron(COLOR_PAIR(BLACK_PAIR)); // Ativando a cor preta
             }
-            mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "[ %s%s ]", valor_para_string(carta.valor), caracter_para_naipe(carta.naipe));
+            mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "[ %-2s%s ]", valor_para_string(carta.valor), caracter_para_naipe(carta.naipe));
             row++;
         }
         // recupera fila
@@ -230,12 +272,6 @@ void desenhaColunas(Coluna coluna[NUM_COLUNAS])
         }
     }
     refresh();  // Atualizando a tela para exibir as mudanças
-}
-
-void getUserCmd(void)
-{
-    getch();
-    endwin();
 }
 
 void initDisplay(void)

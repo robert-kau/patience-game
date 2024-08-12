@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <ncurses.h>
+#include <stdlib.h>
 #include "baralho.h"
 #include "fila_enc.h"
 #include "pilha_enc.h"
@@ -23,7 +25,10 @@ void criaColunas(void)
     for(i = 0; i < NUM_COLUNAS; i++)
     {
         coluna[i].faceDown = criaPilhaEnc();
+        coluna[i].numCartasfaceDown = 0;
+
         coluna[i].faceUp = criaFilaEnc();
+        coluna[i].numCartasfaceUp = 0;
     }
 }
 
@@ -34,6 +39,7 @@ void criaFundacoes(void)
     {
         fundacao[i].cartas = criaPilhaEnc();
         fundacao[i].naipe = 0;
+        fundacao[i].numCartas = 0;
     }
 }
 
@@ -42,17 +48,24 @@ void criaMonteCompra(Baralho *baralhoCartas)
     monte.oculto = criaFilaEnc();
     monte.visualizado = criaFilaEnc();
     monte.cartaVisivel.valor = 0;
+    monte.numCartas = 0;
 
     //move baralho restante para monte oculto
     while (!vaziaFilaEnc(baralhoCartas)) 
     {
         Carta carta = desenfileiraFilaEnc(baralhoCartas);
         enfileiraFilaEnc(monte.oculto, carta);
+        monte.numCartas++;
     }
 }
 
-void compraCarta(void)
+int compraCarta(void)
 {
+    if(monte.numCartas == 0)
+    {
+        return -1;
+    }
+
     if(!vaziaFilaEnc(monte.oculto))
     {
         //ha cartas para exibir
@@ -82,6 +95,8 @@ void compraCarta(void)
         //sinaliza que nao ha carta visivel
         monte.cartaVisivel.valor = 0;
     }
+
+    return 0;
 }
 
 void populaColunas(Baralho *baralhoCartas)
@@ -92,58 +107,60 @@ void populaColunas(Baralho *baralhoCartas)
     for(i = 0; i < NUM_COLUNAS; i++)
     {
         tamanhoColuna = i + 1;
-        for(j = 1; j < tamanhoColuna; j++) //comeca em 1 para desconsiderar carta visivez
+        for(j = 1; j < tamanhoColuna; j++) //comeca em 1 para desconsiderar carta visivel
         {
             carta = desenfileiraFilaEnc(baralhoCartas);
-            empilhaPilhaEnc(coluna[i].faceDown, carta);
+            empilhaPilhaEnc(coluna[i].faceDown, carta); //deve-se imaginar que o topo da pilha sera a primeira carta a ser exibida
+            coluna[i].numCartasfaceDown++;
         }
         carta = desenfileiraFilaEnc(baralhoCartas);
         enfileiraFilaEnc(coluna[i].faceUp, carta);
+        coluna[i].numCartasfaceUp++;
     }
 }
 
-void imprimeColuna(Coluna coluna) {
-    PilhaEnc *tempPilha = criaPilhaEnc();
-    FilaEnc *tempFila = criaFilaEnc();
+// void imprimeColuna(Coluna coluna) {
+//     PilhaEnc *tempPilha = criaPilhaEnc();
+//     FilaEnc *tempFila = criaFilaEnc();
 
-    // Imprimindo cartas viradas para baixo (faceDown)
-    printf("Cartas viradas para baixo:\n");
-    while (!vaziaPilhaEnc(coluna.faceDown)) {
-        Carta carta = desempilhaPilhaEnc(coluna.faceDown);
-        empilhaPilhaEnc(tempPilha, carta);
-        printf("%c | %d\n", carta.naipe, carta.valor);
-    }
+//     // Imprimindo cartas viradas para baixo (faceDown)
+//     printf("Cartas viradas para baixo:\n");
+//     while (!vaziaPilhaEnc(coluna.faceDown)) {
+//         Carta carta = desempilhaPilhaEnc(coluna.faceDown);
+//         empilhaPilhaEnc(tempPilha, carta);
+//         printf("%c | %d\n", carta.naipe, carta.valor);
+//     }
 
-    while (!vaziaPilhaEnc(tempPilha)) {
-        Carta carta = desempilhaPilhaEnc(tempPilha);
-        empilhaPilhaEnc(coluna.faceDown, carta);
-    }
+//     while (!vaziaPilhaEnc(tempPilha)) {
+//         Carta carta = desempilhaPilhaEnc(tempPilha);
+//         empilhaPilhaEnc(coluna.faceDown, carta);
+//     }
 
-    // Imprimindo cartas viradas para cima (faceUp)
-    printf("Cartas viradas para cima:\n");
-    while (!vaziaFilaEnc(coluna.faceUp)) {
-        Carta carta = desenfileiraFilaEnc(coluna.faceUp);
-        enfileiraFilaEnc(tempFila, carta);
-        printf("%c | %d\n", carta.naipe, carta.valor);
-    }
+//     // Imprimindo cartas viradas para cima (faceUp)
+//     printf("Cartas viradas para cima:\n");
+//     while (!vaziaFilaEnc(coluna.faceUp)) {
+//         Carta carta = desenfileiraFilaEnc(coluna.faceUp);
+//         enfileiraFilaEnc(tempFila, carta);
+//         printf("%c | %d\n", carta.naipe, carta.valor);
+//     }
 
-    while (!vaziaFilaEnc(tempFila)) {
-        Carta carta = desenfileiraFilaEnc(tempFila);
-        enfileiraFilaEnc(coluna.faceUp, carta);
-    }
+//     while (!vaziaFilaEnc(tempFila)) {
+//         Carta carta = desenfileiraFilaEnc(tempFila);
+//         enfileiraFilaEnc(coluna.faceUp, carta);
+//     }
 
-    // Limpando estruturas temporárias
-    destroiPilhaEnc(tempPilha);
-    destroiFilaEnc(tempFila);
-}
+//     // Limpando estruturas temporárias
+//     destroiPilhaEnc(tempPilha);
+//     destroiFilaEnc(tempFila);
+// }
 
-void imprimeTodasColunas(Coluna colunas[], int numColunas) {
-    for (int i = 0; i < numColunas; i++) {
-        printf("Coluna %d:\n", i + 1);
-        imprimeColuna(colunas[i]);
-        printf("\n");
-    }
-}
+// void imprimeTodasColunas(Coluna colunas[], int numColunas) {
+//     for (int i = 0; i < numColunas; i++) {
+//         printf("Coluna %d:\n", i + 1);
+//         imprimeColuna(colunas[i]);
+//         printf("\n");
+//     }
+// }
 
 int insereCartaFundacao(Carta carta, int indiceFundacao)
 {
@@ -174,6 +191,8 @@ int insereCartaFundacao(Carta carta, int indiceFundacao)
 
         empilhaPilhaEnc(fundacao[indiceFundacao].cartas, carta); // Empilha a carta
         
+        fundacao[indiceFundacao].numCartas++;
+
         return 0;
     }
     else
@@ -218,6 +237,7 @@ int insereCartaColuna(Carta carta, int indiceColuna)
         {
             //cumpre requisitos de sequencia
             enfileiraFilaEnc(coluna[indiceColuna].faceUp, carta);
+            coluna[indiceColuna].numCartasfaceUp++;
         }
         else
         {
@@ -231,7 +251,42 @@ int insereCartaColuna(Carta carta, int indiceColuna)
 
 void gameLoop(void)
 {
-    getUserCmd();
+    // Loop principal
+    while (1) 
+    {
+        desenhaMonteCompra(&monte);
+
+        desenhaColunas(coluna);
+
+        desenhaFundacoes(fundacao);
+
+        promptComando();
+    }
+    
+    endwin(); // Finaliza a ncurses
+}
+
+void processaComando(const char* comando) 
+{
+    if (strcmp(comando, "c") == 0) //compra carta
+    {
+        if(compraCarta() == 0)
+            exibeMsgStatus("Carta comprada");
+    } 
+    else if (strcmp(comando, "move") == 0) 
+    {
+        exibeMsgStatus("Movendo carta...");
+    } 
+    else if (strcmp(comando, "quit") == 0) 
+    {
+        endwin();  // Finaliza a ncurses
+        exit(0);
+    } 
+    else 
+    {
+        exibeMsgStatus("Comando desconhecido.");
+
+    }
 }
 
 void montaJogo(void)
@@ -248,14 +303,7 @@ void montaJogo(void)
 
     criaMonteCompra(baralhoCartas);
 
-    desenhaMonteCompra(&monte);
 
-    desenhaMonteCompra(&monte);
 
-    desenhaColunas(coluna);
-
-    desenhaFundacoes(fundacao);
-
-    gameLoop();
 }
 

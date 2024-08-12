@@ -14,21 +14,29 @@ typedef FilaEnc Baralho;
 typedef struct {
    PilhaEnc *faceDown;
    FilaEnc *faceUp;
+   int numCartasfaceDown;
+   int numCartasfaceUp;
 } Coluna;
 
 typedef struct
 {
     PilhaEnc *cartas;
     char naipe;
+    int numCartas;
 } Fundacao;
 
 typedef struct {
    Baralho *oculto;
    Baralho *visualizado;
    Carta cartaVisivel;
+   int numCartas;
 } MonteCompra;
 
 void montaJogo(void);
+
+void gameLoop(void);
+
+void processaComando(const char* comando);
 
 
 #endif
