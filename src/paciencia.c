@@ -8,7 +8,16 @@
 #include "paciencia.h"
 #include "display.h"
 
-
+typedef struct parsed_input
+{
+    char source;
+    char destination;
+    int source_index;
+    int destination_index;
+    int source_amount;
+    int success;
+    char cmd;
+} parsed_input;
 
 Coluna coluna[NUM_COLUNAS];
 
@@ -184,8 +193,14 @@ int insereCartaFundacao(Carta carta, int indiceFundacao)
     // Verifica se a fundacao escolhida esta vazia ou possui o mesmo naipe
     if(fundacao[indiceFundacao].naipe == 0 || fundacao[indiceFundacao].naipe == carta.naipe)
     {
+        //verifica se nao ha naipe definido para a fundacao
         if(fundacao[indiceFundacao].naipe == 0)
         {
+            //nao ha naipe definido ainda
+
+            if(carta.valor != 1) //primeira carta deve ser 'A'
+                return -1;
+
             fundacao[indiceFundacao].naipe = carta.naipe; // Define o naipe na fundacao se estiver vazia
         }
 
@@ -233,7 +248,7 @@ int insereCartaColuna(Carta carta, int indiceColuna)
         Carta cartaFinal = finalFilaEnc(coluna[indiceColuna].faceUp);
 
         // verifica se cartas formam sequencia decrescente e cores intercaladas
-        if ((cartaFinal.valor == carta.valor - 1) && seqValidaNaipes(cartaFinal.naipe, carta.naipe))
+        if ((cartaFinal.valor == carta.valor + 1) && seqValidaNaipes(cartaFinal.naipe, carta.naipe))
         {
             //cumpre requisitos de sequencia
             enfileiraFilaEnc(coluna[indiceColuna].faceUp, carta);
@@ -266,26 +281,131 @@ void gameLoop(void)
     endwin(); // Finaliza a ncurses
 }
 
-void processaComando(const char* comando) 
+int moveCartaComprada(char tipoDestino, int indexDestino)
 {
-    if (strcmp(comando, "c") == 0) //compra carta
+    //verifica se ha carta comprada para mover
+    if(monte.cartaVisivel.valor == 0)
+        return -1;
+
+    //ha carta visivel para ser movida, entao procede com movimento
+    switch (tipoDestino)
     {
-        if(compraCarta() == 0)
-            exibeMsgStatus("Carta comprada");
-    } 
-    else if (strcmp(comando, "move") == 0) 
+    case 'c':
+        if(insereCartaColuna(monte.cartaVisivel, indexDestino) != 0) //move carta
+            return -1;
+        break;
+    
+    case 'f':
+        if(insereCartaFundacao(monte.cartaVisivel, indexDestino) != 0) //move carta
+            return -1;
+        break;
+
+    default:
+        return -1;
+        break;
+    
+    }
+
+    //invalida uso da carta ja movida
+    monte.cartaVisivel.valor = 0;
+
+    //verifica se ha mais cartas ja compradas para tornar visivel
+    if(!vaziaFilaEnc(monte.visualizado)) 
     {
-        exibeMsgStatus("Movendo carta...");
-    } 
-    else if (strcmp(comando, "quit") == 0) 
+        //entao torna visivel a proxima
+        monte.cartaVisivel = desenfileiraFilaEnc(monte.visualizado);
+    }
+
+    return 0;
+}
+
+parsed_input parse_input(char *command)
+{
+    parsed_input parsed;
+    parsed.success = 1;
+    parsed.source_amount = 1;
+
+    // parser patterns
+    char *pattern_multi_move = "m%dc%d c%d"; // multiplas cartas entre colunas
+    char *pattern_single_move = "mc%d %c%d"; // uma carta da coluna para qualquer
+    char *pattern_pile_move = "mm%c%d";     // move da pilha de compra para qualquer
+    char *pattern_pile = "c";              // compra carta
+    char *pattern_exit = "exit";             // compra carta
+
+    if (sscanf(command, pattern_multi_move, &parsed.source_amount,
+               &parsed.source_index, &parsed.destination_index) == 3)
     {
-        endwin();  // Finaliza a ncurses
-        exit(0);
+        parsed.source = 'c';
+        parsed.destination = 'c';
+    }
+    else if (sscanf(command, pattern_single_move, &parsed.source_index,
+                    &parsed.destination, &parsed.destination_index) == 3)
+    {
+        parsed.source = 'c';
+    }
+    else if (sscanf(command, pattern_pile_move, &parsed.destination,
+                    &parsed.destination_index) == 2)
+    {
+        parsed.source = 'm';
+    }
+    else if (strcmp(command, pattern_pile) == 0)
+    {
+        parsed.source = 'p';
+    }
+    else if (strcmp(command, pattern_exit) == 0)
+    {
+        parsed.cmd = 'e';
+    }
+    else
+    {
+        parsed.success = 0;
+    }
+    return parsed;
+}
+
+void processaComando(char* comando) 
+{
+    parsed_input result = parse_input(comando);
+
+    if (result.success) 
+    {
+        if (result.cmd == 'e')
+        {
+            endwin(); // Finaliza a ncurses
+            exit(0);
+        }
+
+        //verifica destinos validos
+        else if((result.destination == 'c' && ((result.destination_index >= NUM_COLUNAS) || (result.destination_index < 0)))
+            || (result.destination == 'f' && ((result.destination_index >= NUM_FUNDACOES) || (result.destination_index < 0))))
+        {
+            exibeMsgStatus("Coluna destino fora da faixa.");
+
+        }
+
+        //verifica fontes validas
+        else if(result.source == 'c' && ((result.source_index >= NUM_COLUNAS) || (result.source_index < 0))){
+            exibeMsgStatus("Coluna fonte fora da faixa.");
+        }
+
+        else if(result.source == 'p') //compra carta
+        {
+            if(compraCarta() == 0)
+                exibeMsgStatus("Carta comprada");
+
+        }
+        else if(result.source == 'm') //move carta comprada
+        {
+            if(moveCartaComprada(result.destination, result.destination_index) == 0)
+                exibeMsgStatus("Carta movida");
+            else
+                exibeMsgStatus("Erro ao mover carta");
+        }
+
     } 
     else 
     {
         exibeMsgStatus("Comando desconhecido.");
-
     }
 }
 

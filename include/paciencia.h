@@ -36,7 +36,7 @@ void montaJogo(void);
 
 void gameLoop(void);
 
-void processaComando(const char* comando);
+void processaComando(char* comando);
 
 
 #endif
