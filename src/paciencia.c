@@ -6,7 +6,7 @@
 #include "fila_enc.h"
 #include "pilha_enc.h"
 #include "paciencia.h"
-#include "display.h"
+#include "interface.h"
 
 typedef struct parsed_input
 {

@@ -274,7 +274,7 @@ void desenhaColunas(Coluna coluna[NUM_COLUNAS])
     refresh();  // Atualizando a tela para exibir as mudanças
 }
 
-void initDisplay(void)
+void initInterface(void)
 {
     setlocale(LC_CTYPE, "");
     // Inicializa a ncurses

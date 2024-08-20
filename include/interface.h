@@ -1,5 +1,5 @@
-#ifndef _DISPLAY_H_
-#define _DISPLAY_H_
+#ifndef _INTERFACE_H_
+#define _INTERFACE_H_
 
 #define BLACK_PAIR 1
 #define RED_PAIR 2
@@ -8,8 +8,7 @@
 struct Coluna;
 struct MonteCompra;
 
-
-void initDisplay(void);
+void initInterface(void);
 
 void desenhaColunas(Coluna coluna[]);
 
@@ -22,7 +21,5 @@ void getUserCmd(void);
 void promptComando(void); 
 
 void exibeMsgStatus(const char* msg);
-
-
 
 #endif
