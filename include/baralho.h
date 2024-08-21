@@ -14,11 +14,12 @@ typedef struct
 struct filaEnc;
 
 // Funcao que cria um baralho
-struct filaEnc *criaBaralho();
+struct filaEnc *criaBaralho(void);
 
+// Funcao que detroi a fila de cartas
 void destroiBaralho(struct filaEnc *baralho);
 
-// Função para embaralhar cartas
+// Funcao para embaralhar cartas
 void embaralhaCartas(struct filaEnc *fila);
 
 #endif

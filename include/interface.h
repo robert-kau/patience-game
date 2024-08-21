@@ -41,24 +41,31 @@
 struct Coluna;
 struct MonteCompra;
 
+// Funcao que inicializa interface (bibliotecas, terminal, etc)
 void initInterface(void);
 
+// Funcao para limpar a tela
 void limpaTela(void);
 
+// Funcao para exibir as colunas no terminal
 void desenhaColunas(Coluna coluna[NUM_COLUNAS]);
 
+// Funcao para exibir o monte de compra
 void desenhaMonteCompra(MonteCompra *monte);
 
+// Funcao que desenha fundacoes
 void desenhaFundacoes(Fundacao fundacao[NUM_FUNDACOES]);
 
-void getUserCmd(void);
-
+// Funcao que recebe comando digitado pelo usuario e exibe informacoes na tela
 void promptComando(void);
 
+// Funcao para exibir mensagens de status na tela
 void exibeMsgStatus(const char *msg);
 
+// Funcao que desenha a tela de menu
 void desenhaTelaMenu(void);
 
+// Funcao que desenha a tela quando o jogo eh vencido
 void desenhaTelaVencido(void);
 
 #endif

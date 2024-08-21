@@ -5,7 +5,8 @@
 #include "fila_enc.h"
 #include "pilha_enc.h"
 
-FilaEnc *criaBaralho()
+// Funcao que cria uma fila de cartas
+FilaEnc *criaBaralho(void)
 {
     FilaEnc *baralho = criaFilaEnc();
     Carta novaCarta;
@@ -26,28 +27,29 @@ FilaEnc *criaBaralho()
     return baralho;
 }
 
+// Funcao que detroi a fila de cartas
 void destroiBaralho(FilaEnc *baralho)
 {
     destroiFilaEnc(baralho);
 }
 
-// Função para embaralhar cartas
+// Funcao para embaralhar cartas
 void embaralhaCartas(FilaEnc *fila)
 {
     int tamanho = tamanhoFilaEnc(fila);
     if (tamanho <= 1)
-        return; // Não há necessidade de embaralhar se houver 0 ou 1 carta
+        return; //nao ha necessidade de embaralhar se houver 0 ou 1 carta
 
-    // Array para armazenar cartas temporariamente
+    //array para armazenar cartas temporariamente
     Carta *arrayCartas = (Carta *)malloc(tamanho * sizeof(Carta));
 
-    // Remover cartas da fila e armazenar no array
+    //remover cartas da fila e armazenar no array
     for (int i = 0; i < tamanho; i++)
     {
         arrayCartas[i] = desenfileiraFilaEnc(fila);
     }
 
-    // Embaralhar o array de cartas
+    //embaralhar o array de cartas
     srand(time(NULL));
     for (int i = 0; i < tamanho; i++)
     {
@@ -57,12 +59,12 @@ void embaralhaCartas(FilaEnc *fila)
         arrayCartas[j] = temp;
     }
 
-    // Reinserir cartas na fila
+    //reinserir cartas na fila
     for (int i = 0; i < tamanho; i++)
     {
         enfileiraFilaEnc(fila, arrayCartas[i]);
     }
 
-    // Liberar memória do array temporário
+    //liberar memoria do array temporario
     free(arrayCartas);
 }

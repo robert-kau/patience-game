@@ -35,16 +35,19 @@ void montaJogo(void);
 
 void desmontaJogo(void);
 
+// Funcao que retorna o status do jogo (MENU, EM_JOGO, VENCIDO)
 enum statusGame obtemStatusJogo()
 {
     return (estadoJogo);
 }
 
+// Funcao que define o status do jogo (MENU, EM_JOGO, VENCIDO)
 void defineStatusJogo(enum statusGame status)
 {
     estadoJogo = status;
 }
 
+// Funcao que cria as estruturas das colunas
 void criaColunas(void)
 {
     int i;
@@ -59,6 +62,7 @@ void criaColunas(void)
     }
 }
 
+// Funcao que destroi as estruturas das colunas
 void destroiColunas(void)
 {
     int i;
@@ -70,6 +74,7 @@ void destroiColunas(void)
     }
 }
 
+// Funcao que cria as estruturas das fundacoes
 void criaFundacoes(void)
 {
     int i;
@@ -81,6 +86,7 @@ void criaFundacoes(void)
     }
 }
 
+// Funcao que destroi as estruturas das fundacoes
 void destroiFundacoes(void)
 {
     int i;
@@ -90,6 +96,7 @@ void destroiFundacoes(void)
     }
 }
 
+// Funcao que cria a estrutura do monte de compras
 void criaMonteCompra(Baralho *baralhoCartas)
 {
     monte.oculto = criaFilaEnc();
@@ -106,12 +113,14 @@ void criaMonteCompra(Baralho *baralhoCartas)
     }
 }
 
+// Funcao que destroi a estrutura do monte de compras
 void destroiMonteCompra()
 {
     destroiFilaEnc(monte.oculto);
     destroiFilaEnc(monte.visualizado);
 }
 
+// Funcao que realiza compra de carta do monte de compra
 int compraCarta(void)
 {
     if (monte.numCartas == 0)
@@ -152,6 +161,7 @@ int compraCarta(void)
     return 0;
 }
 
+// Funcao que adiciona cartas do baralho nas colunas
 void populaColunas(Baralho *baralhoCartas)
 {
     int i, j, tamanhoColuna;
@@ -172,6 +182,7 @@ void populaColunas(Baralho *baralhoCartas)
     }
 }
 
+// Funcao que insere uma carta em uma fundacao
 int insereCartaFundacao(Carta carta, int indiceFundacao)
 {
     // verificaca se o indice da fundacao fora do intervalo permitido
@@ -228,6 +239,7 @@ int insereCartaFundacao(Carta carta, int indiceFundacao)
     return 0; // operacao bem-sucedida
 }
 
+// Funcao que monito se jogo foi vencido
 void verificaAvancoJogo(void)
 {
     int i, count;
@@ -252,6 +264,7 @@ int seqValidaNaipes(char naipeOrigem, char naipeNovo)
              ((naipeNovo == 'P') || (naipeNovo == 'E'))));
 }
 
+// Funcao que insere uma carta em uma coluna
 int insereCartaColuna(Carta carta, int indiceColuna)
 {
     if ((indiceColuna < 0) || (indiceColuna >= NUM_COLUNAS))
@@ -292,6 +305,7 @@ int insereCartaColuna(Carta carta, int indiceColuna)
     return 0;
 }
 
+// Funcao que contem loop principal do jogo
 void gameLoop(void)
 {
     // Loop principal
@@ -329,6 +343,7 @@ void gameLoop(void)
     }
 }
 
+// Funcao que move carta do monte de compra para qualquer destino
 int moveCartaComprada(char tipoDestino, int indexDestino)
 {
     // verifica se ha carta comprada para mover
@@ -387,6 +402,7 @@ int moveCartaComprada(char tipoDestino, int indexDestino)
     return 0;
 }
 
+// Funcao que remove uma carta da fila de cartas visiveis de uma coluna
 Carta removeCartaVisivelColuna(Coluna *coluna)
 {
     Carta carta = desenfileiraFilaEnc(coluna->faceUp);
@@ -394,6 +410,7 @@ Carta removeCartaVisivelColuna(Coluna *coluna)
     return carta;
 }
 
+// Funcao que remove uma carta da pilha de cartas ocultas de uma coluna
 Carta removeCartaOcultaColuna(Coluna *coluna)
 {
     Carta carta = desempilhaPilhaEnc(coluna->faceDown);
@@ -401,12 +418,14 @@ Carta removeCartaOcultaColuna(Coluna *coluna)
     return carta;
 }
 
+// Funcao que adiciona uma carta da fila de cartas visiveis de uma coluna
 void acrescentaCartaVisivelColuna(Coluna *coluna, Carta carta)
 {
     enfileiraFilaEnc(coluna->faceUp, carta);
     coluna->numCartasfaceUp++;
 }
 
+// Funcao que move carta de uma coluna para qualquer destino
 int moveCartaColuna(int numCartas, int indexColunaOrigem, char tipoDestino, int indexDestino)
 {
     int i;
@@ -546,6 +565,7 @@ int moveCartaColuna(int numCartas, int indexColunaOrigem, char tipoDestino, int 
     return 0;
 }
 
+// Funcao que realiza parseamento de comando digitado pelo usuario
 ParseEntrada parse_input(char *command)
 {
     ParseEntrada parsed;
@@ -557,8 +577,8 @@ ParseEntrada parse_input(char *command)
     char *pattern_single_move = "mc%d %c%d"; // uma carta da coluna para qualquer
     char *pattern_pile_move = "mm%c%d";      // move da pilha de compra para qualquer
     char *pattern_pile = "c";                // compra carta
-    char *pattern_exit = "exit";             // compra carta
-    char *pattern_start = "start";           // compra carta
+    char *pattern_exit = "exit";             // encerrar jogo
+    char *pattern_start = "start";           // iniciar jogo
 
     if (sscanf(command, pattern_multi_move, &parsed.source_amount,
                &parsed.source_index, &parsed.destination_index) == 3)
@@ -595,6 +615,7 @@ ParseEntrada parse_input(char *command)
     return parsed;
 }
 
+// Funcao que processa comando digitado pelo usuario
 void processaComando(char *comando)
 {
     ParseEntrada result = parse_input(comando);
@@ -676,6 +697,7 @@ void processaComando(char *comando)
     }
 }
 
+//Funcao que cria estruturas a serem usadas no jogo
 void montaJogo(void)
 {
     baralhoCartas = criaBaralho();
@@ -691,6 +713,7 @@ void montaJogo(void)
     criaMonteCompra(baralhoCartas);
 }
 
+// Funcao que destroi estruturas a serem usadas no jogo
 void desmontaJogo(void)
 {
     destroiBaralho(baralhoCartas);
@@ -702,6 +725,7 @@ void desmontaJogo(void)
     destroiMonteCompra();
 }
 
+// Funcao que inicializa estado do jogo
 void initGame(void)
 {
     defineStatusJogo(MENU);

@@ -8,6 +8,7 @@
 #include "interface.h"
 #include <locale.h>
 
+// Funcao para exibir mensagens de status na tela
 void exibeMsgStatus(const char *msg)
 {
     attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
@@ -18,6 +19,7 @@ void exibeMsgStatus(const char *msg)
     refresh();
 }
 
+// Funcao que recebe comando digitado pelo usuario e exibe informacoes na tela
 void promptComando(void)
 {
     attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
@@ -48,6 +50,7 @@ void promptComando(void)
     processaComando(comando);
 }
 
+// Funcao para desenhar retangulo
 void desenhaRetangulo(int start_y, int start_x, int height, int width)
 {
     // Desenha as linhas horizontais
@@ -68,9 +71,10 @@ void desenhaRetangulo(int start_y, int start_x, int height, int width)
     refresh();
 }
 
+// Funcao para preencher retangulo
 void preencheRetangulo(int start_y, int start_x, int height, int width)
 {
-    // Usa o par de cores GRAY_PAIR para preencher o retângulo
+    // Usa o par de cores GRAY_PAIR para preencher o retangulo
     attron(COLOR_PAIR(BLACK_PAIR));
     for (int y = start_y + 1; y < start_y + height - 1; y++)
     {
@@ -82,7 +86,7 @@ void preencheRetangulo(int start_y, int start_x, int height, int width)
     refresh();
 }
 
-// Função para converter o valor da carta em uma string legível
+// Funcao para converter o valor da carta em uma string legivel
 const char *obtemCharValor(char valor)
 {
     switch (valor)
@@ -104,7 +108,7 @@ const char *obtemCharValor(char valor)
     }
 }
 
-// Função para converter o naipe da carta em sua representacao
+// Funcao para converter o naipe da carta em sua representacao
 const char *obtemCharNaipe(char naipe)
 {
     switch (naipe)
@@ -122,11 +126,13 @@ const char *obtemCharNaipe(char naipe)
     }
 }
 
+// Funcao para limpar a tela
 void limpaTela()
 {
     preencheRetangulo(0, 0, MAX_LINES - 2, MAX_COL); // preenche retangulo, mas mantem linha de comando e status (-2)
 }
 
+// Funcao que desenha fundacoes
 void desenhaFundacoes(Fundacao fundacao[NUM_FUNDACOES])
 {
     int i;
@@ -166,7 +172,7 @@ void desenhaFundacoes(Fundacao fundacao[NUM_FUNDACOES])
     refresh(); // Atualizando a tela para exibir as mudancas
 }
 
-// Função para exibir as colunas no terminal
+// Funcao para exibir o monte de compra
 void desenhaMonteCompra(MonteCompra *monte)
 {
     attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
@@ -204,7 +210,7 @@ void desenhaMonteCompra(MonteCompra *monte)
     refresh(); // Atualizando a tela para exibir as mudancas
 }
 
-// Função para exibir as colunas no terminal
+// Funcao para exibir as colunas no terminal
 void desenhaColunas(Coluna coluna[NUM_COLUNAS])
 {
     // PilhaEnc *tempPilha = criaPilhaEnc();
@@ -266,6 +272,7 @@ void desenhaColunas(Coluna coluna[NUM_COLUNAS])
     refresh(); // Atualizando a tela para exibir as mudanças
 }
 
+// Funcao que desenha a tela quando o jogo eh vencido
 void desenhaTelaVencido(void)
 {
     attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
@@ -277,6 +284,7 @@ void desenhaTelaVencido(void)
     mvprintw(MAX_LINES - 6, (MAX_COL - strlen("Digite \"exit\" para sair")) / 2, "Digite \"exit\" para sair");
 }
 
+// Funcao que desenha a tela de menu
 void desenhaTelaMenu(void)
 {
     attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
@@ -296,6 +304,7 @@ void desenhaTelaMenu(void)
     refresh(); // Atualizando a tela para exibir as mudancas
 }
 
+// Funcao que inicializa interface (bibliotecas, terminal, etc)
 void initInterface(void)
 {
     setlocale(LC_CTYPE, "");

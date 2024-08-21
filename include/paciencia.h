@@ -40,16 +40,22 @@ enum statusGame
     VENCIDO
 };
 
+//Funcao que cria estruturas a serem usadas no jogo
 void montaJogo(void);
 
+// Funcao que inicializa estado do jogo
 void initGame(void);
 
+// Funcao que contem loop principal do jogo
 void gameLoop(void);
 
+// Funcao que processa comando digitado pelo usuario
 void processaComando(char *comando);
 
+// Funcao que retorna o status do jogo (MENU, EM_JOGO, VENCIDO)
 enum statusGame obtemStatusJogo();
 
+// Funcao que define o status do jogo (MENU, EM_JOGO, VENCIDO)
 void defineStatusJogo(enum statusGame status);
 
 #endif
