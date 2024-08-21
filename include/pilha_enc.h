@@ -5,17 +5,19 @@
 
 typedef Carta Info;
 
-typedef struct NodoPEnc{
-   Info info;
-   struct NodoPEnc *prox;
+typedef struct NodoPEnc
+{
+    Info info;
+    struct NodoPEnc *prox;
 } NodoPEnc;
 
-typedef struct pilhaEnc{
-   NodoPEnc *topo;
+typedef struct pilhaEnc
+{
+    NodoPEnc *topo;
 } PilhaEnc;
 
 // Funcao que cria uma pilha
-PilhaEnc* criaPilhaEnc();
+PilhaEnc *criaPilhaEnc();
 
 // Funcao que destroi uma pilha
 void destroiPilhaEnc(PilhaEnc *pilha);
@@ -27,6 +29,6 @@ void empilhaPilhaEnc(PilhaEnc *pilha, Info info);
 Info desempilhaPilhaEnc(PilhaEnc *pilha);
 
 // Funcao que determina se uma pilha eh vazia
-int vaziaPilhaEnc(PilhaEnc* pilha);
+int vaziaPilhaEnc(PilhaEnc *pilha);
 
 #endif

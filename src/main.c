@@ -5,12 +5,12 @@
 #include "paciencia.h"
 #include "interface.h"
 
-
-
 int main()
 {
     initInterface();
+
     initGame();
+
     gameLoop();
 
     return 0;

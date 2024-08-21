@@ -4,18 +4,18 @@
 #define NUM_COLUNAS 7
 #define NUM_FUNDACOES 4
 
-
 struct FilaEnc;
 struct PilhaEnc;
 struct Carta;
 
 typedef FilaEnc Baralho;
 
-typedef struct {
-   PilhaEnc *faceDown;
-   FilaEnc *faceUp;
-   int numCartasfaceDown;
-   int numCartasfaceUp;
+typedef struct
+{
+    PilhaEnc *faceDown;
+    FilaEnc *faceUp;
+    int numCartasfaceDown;
+    int numCartasfaceUp;
 } Coluna;
 
 typedef struct
@@ -25,14 +25,16 @@ typedef struct
     int numCartas;
 } Fundacao;
 
-typedef struct {
-   Baralho *oculto;
-   Baralho *visualizado;
-   Carta cartaVisivel;
-   int numCartas;
+typedef struct
+{
+    Baralho *oculto;
+    Baralho *visualizado;
+    Carta cartaVisivel;
+    int numCartas;
 } MonteCompra;
 
-enum statusGame {
+enum statusGame
+{
     MENU,
     EM_JOGO,
     VENCIDO
@@ -44,11 +46,10 @@ void initGame(void);
 
 void gameLoop(void);
 
-void processaComando(char* comando);
+void processaComando(char *comando);
 
 enum statusGame obtemStatusJogo();
 
 void defineStatusJogo(enum statusGame status);
-
 
 #endif
