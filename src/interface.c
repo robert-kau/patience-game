@@ -32,13 +32,12 @@
 #define LINE_FUND 2
 #define COL_FUND 26
 
+#define MSG_CMD "Digite um movimento: "
+#define MSG_STATUS "Status: "
+
 #define LINE_PROMPT  MAX_LINES-3
 #define COL_PROMPT  2
 #define COL_CMD  (int)(COL_PROMPT + strlen(MSG_CMD))
-
-
-#define MSG_CMD "Digite um movimento: "
-#define MSG_STATUS "Status: "
 
 #define LINE_STATUS (LINE_PROMPT + 1)
 #define COL_STATUS COL_PROMPT
@@ -49,7 +48,9 @@
 
 void exibeMsgStatus(const char* msg)
 {
-    mvprintw(LINE_STATUS, COL_MSG_STATUS, "%*s", MAX_COL - COL_MSG_STATUS, " "); 
+    attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
+
+    mvprintw(LINE_STATUS, COL_STATUS, "%*s", MAX_COL - COL_MSG_STATUS, " "); 
     mvprintw(LINE_STATUS, COL_MSG_STATUS, "%s", msg);
 
     refresh();
@@ -57,8 +58,10 @@ void exibeMsgStatus(const char* msg)
 
 void promptComando(void) 
 {
+    attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
+
     // Apaga a linha anterior
-    mvprintw(LINE_PROMPT, COL_PROMPT, "%*s", MAX_COL - COL_PROMPT, " ");
+    mvprintw(LINE_PROMPT, COL_PROMPT, "%*s", MAX_COL - COL_CMD, " ");
 
     // Exibe a mensagem 
     mvprintw(LINE_PROMPT, COL_PROMPT, MSG_CMD);
@@ -133,6 +136,11 @@ const char* caracter_para_naipe(char naipe) {
         case 'P': return "\u2663";
         default: return "ERRO";
     }
+}
+
+void limpaTela()
+{
+    fill_rectangle(0, 0, MAX_LINES -2, MAX_COL); //preenche retangulo, mas mantem linha de comando e status (-2)
 }
 
 void desenhaFundacoes(Fundacao fundacao[NUM_FUNDACOES])
@@ -226,6 +234,12 @@ void desenhaColunas(Coluna coluna[NUM_COLUNAS])
 
         attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
 
+        if(coluna[col].numCartasfaceDown == 0 && coluna[col].numCartasfaceUp == 0) //verifica se coluna esta vazia
+        {
+            mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "[     ]");
+            continue;
+        }
+
         for(row = 0; row < coluna[col].numCartasfaceDown; row++)
         {
             mvprintw(START_LINE_SEVEN_COL + row, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "[  ?  ]");
@@ -247,6 +261,11 @@ void desenhaColunas(Coluna coluna[NUM_COLUNAS])
         //     Carta carta = desempilhaPilhaEnc(tempPilha);
         //     empilhaPilhaEnc(coluna[col].faceDown, carta);
         // }
+
+        if(coluna[col].numCartasfaceUp == 0) //verifica se fila de cartas visiveis esta vazia (nao deveria entrar aqui, pois isso so pode ocorrer quando toda coluna vazia)
+        {
+            continue;
+        }
 
         // Imprime cartas visivies
         while (!vaziaFilaEnc(coluna[col].faceUp)) 

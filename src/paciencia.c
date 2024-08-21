@@ -27,6 +27,9 @@ MonteCompra monte;
 
 Baralho *baralhoCartas;
 
+void acrescentaCartaVisivelColuna(Coluna *coluna, Carta carta);
+
+
 void criaColunas(void)
 {
     int i;
@@ -175,6 +178,7 @@ int insereCartaFundacao(Carta carta, int indiceFundacao)
 {
     //TODO: adicionar regra da progressao de valor
 
+
     if((indiceFundacao < 0) || (indiceFundacao >= NUM_FUNDACOES))
     {
         //indice fora da faixa valida
@@ -233,14 +237,16 @@ int insereCartaColuna(Carta carta, int indiceColuna)
         return -1;
     }
 
-    //verifica se coluna esta completamente vazia
-    if(vaziaPilhaEnc(coluna[indiceColuna].faceDown) && vaziaFilaEnc(coluna[indiceColuna].faceUp))
+    //verifica se coluna esta completamente vazia e se carta a ser movida eh rei
+    if(((coluna[indiceColuna].numCartasfaceDown == 0) && (coluna[indiceColuna].numCartasfaceUp == 0)) && (carta.valor != 13))
     {
         //so pode mover rei para coluna vazia
-        if(carta.valor != 13)
-        {
-            return -1;
-        }
+        return -1;
+    }
+    
+    if(coluna[indiceColuna].numCartasfaceUp == 0) //unica opcao possivel eh mover o rei
+    {
+        acrescentaCartaVisivelColuna(&coluna[indiceColuna], carta);
     }
     else //caso normal
     {
@@ -251,8 +257,7 @@ int insereCartaColuna(Carta carta, int indiceColuna)
         if ((cartaFinal.valor == carta.valor + 1) && seqValidaNaipes(cartaFinal.naipe, carta.naipe))
         {
             //cumpre requisitos de sequencia
-            enfileiraFilaEnc(coluna[indiceColuna].faceUp, carta);
-            coluna[indiceColuna].numCartasfaceUp++;
+            acrescentaCartaVisivelColuna(&coluna[indiceColuna], carta);
         }
         else
         {
@@ -269,6 +274,8 @@ void gameLoop(void)
     // Loop principal
     while (1) 
     {
+        limpaTela();
+
         desenhaMonteCompra(&monte);
 
         desenhaColunas(coluna);
@@ -308,14 +315,200 @@ int moveCartaComprada(char tipoDestino, int indexDestino)
 
     //invalida uso da carta ja movida
     monte.cartaVisivel.valor = 0;
+    monte.cartaVisivel.naipe = 0;
 
     //verifica se ha mais cartas ja compradas para tornar visivel
-    if(!vaziaFilaEnc(monte.visualizado)) 
+    int tamanhoMonteVisualizado = tamanhoFilaEnc(monte.visualizado);
+
+    if(tamanhoMonteVisualizado > 0) 
     {
-        //entao torna visivel a proxima
+        //deve-se mover ultima carta que entrou no monte visualizado para a posicao de carta visivel
+        FilaEnc *monteAux = criaFilaEnc(); //cria fila auxiliar
+
+        //move-se todas as cartas do monte visualizado para uma fila auxiliar, exceto a ultima carta
+        for(int i = 0; i < (tamanhoMonteVisualizado - 1); i++)
+        {
+            Carta carta = desenfileiraFilaEnc(monte.visualizado);
+
+            enfileiraFilaEnc(monteAux, carta);
+        }
+
+        //torna a ultima carta visivel
         monte.cartaVisivel = desenfileiraFilaEnc(monte.visualizado);
+
+        //recupera monte visualizado
+        while (!vaziaFilaEnc(monteAux))
+        {
+            Carta carta = desenfileiraFilaEnc(monteAux);
+            enfileiraFilaEnc(monte.visualizado, carta);
+        }
     }
 
+    return 0;
+}
+
+Carta removeCartaVisivelColuna(Coluna *coluna)
+{
+    Carta carta = desenfileiraFilaEnc(coluna->faceUp);
+    coluna->numCartasfaceUp--;
+    return carta;
+}
+
+Carta removeCartaOcultaColuna(Coluna *coluna)
+{
+    Carta carta = desempilhaPilhaEnc(coluna->faceDown);
+    coluna->numCartasfaceDown--;
+    return carta;
+}
+
+void acrescentaCartaVisivelColuna(Coluna *coluna, Carta carta)
+{
+    enfileiraFilaEnc(coluna->faceUp, carta);
+    coluna->numCartasfaceUp++;
+}
+
+int moveCartaColuna(int numCartas, int indexColunaOrigem, char tipoDestino, int indexDestino)
+{
+    int i;
+    Carta cartaMovida;
+
+    if(numCartas <= 0 || (numCartas > coluna[indexColunaOrigem].numCartasfaceUp)) //numero de cartas invalido ou solicitado para mover mais cartas que as disponiveis
+        return -1;
+
+    if(tipoDestino != 'c' && tipoDestino != 'f') //so eh permitido mover de uma coluna para outra coluna ou fundacao
+        return -1;
+
+    if(numCartas > coluna[indexColunaOrigem].numCartasfaceUp) //verifica se a solicitacao ultrapassa o numero de cartas disponiveis
+        return -1;
+
+    if(numCartas > 1 && tipoDestino != 'c') //mover mais de uma carta so tem sentido entre colunas
+        return -1;
+    
+    int numCartasIntactas = coluna[indexColunaOrigem].numCartasfaceUp - numCartas; //calcula o numero de cartas visiveis que permanecerao na coluna
+    
+
+    FilaEnc *filaCartasIntactas = criaFilaEnc(); //cria fila para guardar cartas que devem ficar na coluna
+
+    for(i = 0; i < numCartasIntactas; i++) //aloca para outra fila cartas que devem ficar na coluna
+    {
+        Carta carta = removeCartaVisivelColuna(&coluna[indexColunaOrigem]);
+        enfileiraFilaEnc(filaCartasIntactas, carta);
+    }
+
+    //aqui so restam na coluna visivel as cartas que devem ser movidas para o destino
+
+    if(numCartas == 1) //verifica se apenas uma carta deve ser movida
+    {
+        cartaMovida = removeCartaVisivelColuna(&coluna[indexColunaOrigem]);
+    
+        switch (tipoDestino)
+        {
+        case 'c': //move para outra coluna
+            if(insereCartaColuna(cartaMovida, indexDestino) != 0) //move carta para outra coluna
+            {
+                //operacao malsucedida, entao deve retornar todas as cartas para a fila
+
+                while (!vaziaFilaEnc(filaCartasIntactas)) //primeiro as cartas da fila auxiliar que deve ficar na fila
+                {
+                    Carta carta = desenfileiraFilaEnc(filaCartasIntactas);
+                    acrescentaCartaVisivelColuna(&coluna[indexColunaOrigem], carta);
+
+                }
+
+                acrescentaCartaVisivelColuna(&coluna[indexColunaOrigem], cartaMovida); //por fim, a carta que seria movida
+
+
+                return -1;
+            }
+            break;
+        
+        case 'f': //move para uma fundacao
+
+            if(insereCartaFundacao(cartaMovida, indexDestino) != 0) //move carta para uma fundacao
+            {
+                //operacao malsucedida, entao deve retornar todas as cartas para a fila
+
+                while (!vaziaFilaEnc(filaCartasIntactas)) //primeiro as cartas da fila auxiliar que deve ficar na fila
+                {
+                    Carta carta = desenfileiraFilaEnc(filaCartasIntactas);
+                    acrescentaCartaVisivelColuna(&coluna[indexColunaOrigem], carta);
+                }
+
+                acrescentaCartaVisivelColuna(&coluna[indexColunaOrigem], cartaMovida); //por fim, a carta que seria movida
+
+                return -1;
+            }
+            break;
+        }
+    }
+    else //deve movimentar multiplas cartas
+    {
+        //nesse ponto, certamente destino sera outra coluna
+
+        cartaMovida = removeCartaVisivelColuna(&coluna[indexColunaOrigem]); //obtem primeira carta a ser movida
+
+        printf("NAIPE %c\n", cartaMovida.naipe);
+
+        if(insereCartaColuna(cartaMovida, indexDestino) == 0) //insere a primeira carta na coluna de destino
+        {
+            //operacao bem-sucedida
+            //nesse caso, nao havera problema de combinacao de naipes para as proximas, pois ja estavam em sequencia na mesma coluna
+
+            for(int i = 0; i < numCartas - 1; i++) //move as cartas restantes, descontando a primeira ja movida
+            {
+                cartaMovida = removeCartaVisivelColuna(&coluna[indexColunaOrigem]); //obtem proxima carta a ser movida
+                if(insereCartaColuna(cartaMovida, indexDestino) != 0)
+                {
+                    //nao devem ocorrer erros
+                }
+            }
+        }
+        else
+        {
+            //operacao malsucedida, entao deve retornar todas as cartas para a fila
+
+            //movimenta para fila de cartas intactas as cartas que nao serao mais movidas
+
+            //primeiro a primeira carta ja removida da fila original, usada para teste
+            enfileiraFilaEnc(filaCartasIntactas, cartaMovida);
+
+            //em seguida, as cartas na sequencia dela, que tambem seriam movidas
+
+            for(i = 0; i < numCartas - 1; i++) 
+            {
+                Carta carta = removeCartaVisivelColuna(&coluna[indexColunaOrigem]);
+                enfileiraFilaEnc(filaCartasIntactas, carta);
+            }
+
+            //aqui a fila de cartas visiveis da coluna origem deve estar vazia e copiada para a fila de cartas intactas
+            //move-se as cartas intactas para a coluna original
+
+            while (!vaziaFilaEnc(filaCartasIntactas))
+            {
+                Carta carta = desenfileiraFilaEnc(filaCartasIntactas);
+                acrescentaCartaVisivelColuna(&coluna[indexColunaOrigem], carta);
+            }
+
+            return -1;
+        }
+    }
+
+    //recupera para a coluna origem as cartas que nao foram movidas
+    while (!vaziaFilaEnc(filaCartasIntactas))
+    {
+        Carta carta = desenfileiraFilaEnc(filaCartasIntactas);
+        acrescentaCartaVisivelColuna(&coluna[indexColunaOrigem], carta);
+    }
+
+
+    //verifica se cartas visiveis da coluna terminaram e se ha cartas ocultas para exibir
+    if(coluna[indexColunaOrigem].numCartasfaceUp == 0 && coluna[indexColunaOrigem].numCartasfaceDown > 0)
+    {
+        //exibe a carta seguinte
+        Carta carta = removeCartaOcultaColuna(&coluna[indexColunaOrigem]);
+        acrescentaCartaVisivelColuna(&coluna[indexColunaOrigem], carta);
+    }
+    
     return 0;
 }
 
@@ -397,6 +590,13 @@ void processaComando(char* comando)
         else if(result.source == 'm') //move carta comprada
         {
             if(moveCartaComprada(result.destination, result.destination_index) == 0)
+                exibeMsgStatus("Carta movida");
+            else
+                exibeMsgStatus("Erro ao mover carta");
+        }
+        else if(result.source == 'c') //move carta de uma coluna
+        {
+            if(moveCartaColuna(result.source_amount, result.source_index, result.destination, result.destination_index) == 0)
                 exibeMsgStatus("Carta movida");
             else
                 exibeMsgStatus("Erro ao mover carta");

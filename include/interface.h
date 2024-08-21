@@ -10,6 +10,8 @@ struct MonteCompra;
 
 void initInterface(void);
 
+void limpaTela(void);
+
 void desenhaColunas(Coluna coluna[]);
 
 void desenhaMonteCompra(MonteCompra *monte);
