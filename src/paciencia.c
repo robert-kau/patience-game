@@ -174,47 +174,58 @@ void populaColunas(Baralho *baralhoCartas)
 
 int insereCartaFundacao(Carta carta, int indiceFundacao)
 {
-    // TODO: adicionar regra da progressao de valor
-
-    if ((indiceFundacao < 0) || (indiceFundacao >= NUM_FUNDACOES))
+    // verificaca se o indice da fundacao fora do intervalo permitido
+    if (indiceFundacao < 0 || indiceFundacao >= NUM_FUNDACOES)
     {
-        // indice fora da faixa valida
-        return -1;
+        return -1; // Indice fora da faixa valida
     }
 
-    // Verifica se ja existe uma fundacao com o mesmo naipe diferente da escolhida
+    // verifica se ja existe uma fundacao com o mesmo naipe, diferente da escolhida
     for (int i = 0; i < NUM_FUNDACOES; i++)
     {
         if (fundacao[i].naipe == carta.naipe && indiceFundacao != i)
         {
-            return -1; // Ja ha outra fundacao com o mesmo naipe
+            return -1; // ja ha outra fundacao com o mesmo naipe
         }
     }
 
-    // Verifica se a fundacao escolhida esta vazia ou possui o mesmo naipe
-    if (fundacao[indiceFundacao].naipe == 0 || fundacao[indiceFundacao].naipe == carta.naipe)
+    // verifica se a fundacao escolhida nao esta vazia e tem um naipe diferente
+    if (fundacao[indiceFundacao].naipe != 0 && fundacao[indiceFundacao].naipe != carta.naipe)
     {
-        // verifica se nao ha naipe definido para a fundacao
-        if (fundacao[indiceFundacao].naipe == 0)
+        return -1; // nao pode empilhar carta de naipe diferente
+    }
+
+    // se a fundacao esta vazia, a primeira carta deve ser um 'A'
+    if (fundacao[indiceFundacao].naipe == 0)
+    {
+        if (carta.valor != 1)
         {
-            // nao ha naipe definido ainda
-
-            if (carta.valor != 1) // primeira carta deve ser 'A'
-                return -1;
-
-            fundacao[indiceFundacao].naipe = carta.naipe; // Define o naipe na fundacao se estiver vazia
+            return -1; // a primeira carta deve ser um 'A'
         }
 
-        empilhaPilhaEnc(fundacao[indiceFundacao].cartas, carta); // Empilha a carta
-
-        fundacao[indiceFundacao].numCartas++;
-
-        return 0;
+        fundacao[indiceFundacao].naipe = carta.naipe; // define o naipe na fundacao
     }
     else
     {
-        return -1; // Nao pode empilhar carta de naipe diferente
+        // fundacao nao esta vazia, entao verifica se carta nova seguira sequencia crescente
+        Carta cartaFund = desempilhaPilhaEnc(fundacao[indiceFundacao].cartas);
+        if (carta.valor != cartaFund.valor + 1) // proxima carta a ser empilhada tem valor da carta ja empilhada + 1
+        {
+            // nao corresponde a sequencia correta, logo, nao pode ser colocada na fundacao
+
+            empilhaPilhaEnc(fundacao[indiceFundacao].cartas, cartaFund); // reempilha ultima carta da fundacao
+
+            return -1; // acusa erro
+        }
     }
+
+    // se chegou aqui, todas as condicoes de erro foram verificadas e validadas
+
+    // empilha a carta na fundacao
+    empilhaPilhaEnc(fundacao[indiceFundacao].cartas, carta);
+    fundacao[indiceFundacao].numCartas++;
+
+    return 0; // operacao bem-sucedida
 }
 
 void verificaAvancoJogo(void)
