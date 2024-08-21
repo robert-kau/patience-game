@@ -32,6 +32,7 @@
 #define LINE_FUND 2
 #define COL_FUND 26
 
+#define MSG_MENU "Digite um comando: "
 #define MSG_CMD "Digite um movimento: "
 #define MSG_STATUS "Status: "
 
@@ -64,9 +65,17 @@ void promptComando(void)
     mvprintw(LINE_PROMPT, COL_PROMPT, "%*s", MAX_COL - COL_CMD, " ");
 
     // Exibe a mensagem 
-    mvprintw(LINE_PROMPT, COL_PROMPT, MSG_CMD);
-
-    mvprintw(LINE_STATUS, COL_STATUS, MSG_STATUS);
+    switch (obtemStatusJogo())
+    {
+    case MENU:
+    case VENCIDO:
+        mvprintw(LINE_PROMPT, COL_PROMPT, MSG_MENU);
+        break;
+    case EM_JOGO:
+        mvprintw(LINE_PROMPT, COL_PROMPT, MSG_CMD);
+        mvprintw(LINE_STATUS, COL_STATUS, MSG_STATUS);
+        break;
+    }
     
     move(LINE_PROMPT, COL_CMD);
 
@@ -149,6 +158,10 @@ void desenhaFundacoes(Fundacao fundacao[NUM_FUNDACOES])
 
     for(i = 0; i < NUM_FUNDACOES; i++)
     {
+        attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
+
+        mvprintw(LINE_FUND - 1, COL_FUND + DISTANCE_SEVEN_COL * i, "Fund. %d", i);
+
         if(!vaziaPilhaEnc(fundacao[i].cartas))
         {
             //ha cartas na fundacao para serem exibidas -> exibe o topo
@@ -184,6 +197,8 @@ void desenhaFundacoes(Fundacao fundacao[NUM_FUNDACOES])
 void desenhaMonteCompra(MonteCompra *monte) 
 {
     attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
+
+    mvprintw(LINE_STOCK - 1, COL_STOCK * 2, "Monte");
 
     if(!vaziaFilaEnc(monte->oculto))
     {
@@ -231,6 +246,9 @@ void desenhaColunas(Coluna coluna[NUM_COLUNAS])
         row = 0;
 
         // Imprime cartas ocultas
+        attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
+
+        mvprintw(START_LINE_SEVEN_COL - 1, START_COL_SEVEN_COL + col * DISTANCE_SEVEN_COL, "Col. %d", col);
 
         attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
 
@@ -291,6 +309,36 @@ void desenhaColunas(Coluna coluna[NUM_COLUNAS])
         }
     }
     refresh();  // Atualizando a tela para exibir as mudanças
+}
+
+void desenhaTelaVencido(void)
+{
+    attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
+
+    mvprintw(MAX_LINES-(20), (MAX_COL-strlen("  Paciência (Klondike)   "))/2, "\u2665  Paciência (Klondike) \u2666");
+
+    mvprintw(MAX_LINES-14, (MAX_COL-strlen("Você venceu o jogo! Parabéns!"))/2, "Você venceu o jogo! Parabéns!");
+
+    mvprintw(MAX_LINES-6, (MAX_COL-strlen("Digite \"exit\" para sair"))/2, "Digite \"exit\" para sair");
+}
+
+void desenhaTelaMenu(void)
+{
+    attron(COLOR_PAIR(WHITE_PAIR)); // Ativando a cor branca
+
+    mvprintw(MAX_LINES-(20), (MAX_COL-strlen("  Paciência (Klondike)   "))/2, "\u2665  Paciência (Klondike) \u2666");
+
+    mvprintw(MAX_LINES-18, 2, "Comandos:");
+    mvprintw(MAX_LINES-16, 2, "Compra de carta: 'c'");
+    mvprintw(MAX_LINES-14, 2, "Movimentação: 'm' + [ORIGEM]: 'm' (para monte) ou 'c<i>' (para coluna) +");
+    mvprintw(MAX_LINES-13, 2, "                 [DESTINO]: 'f<j>' (para fundação) ou 'c<k>' (para coluna)");
+    mvprintw(MAX_LINES-11, 2, "Movimentação em massa (entre colunas): 'm' + [NUM CARTAS]: '<n>' + ");
+    mvprintw(MAX_LINES-10, 2, "                                       [ORIGEM]: 'c<i>' (para coluna) + ");
+    mvprintw(MAX_LINES-9, 2, "                                       [DESTINO]: 'c<k>' (para coluna)");
+
+    mvprintw(MAX_LINES-5, 2, "Digite \"start\" parta começar ou \"exit\" para sair");
+
+    refresh();  // Atualizando a tela para exibir as mudancas
 }
 
 void initInterface(void)

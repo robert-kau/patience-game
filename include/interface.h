@@ -24,4 +24,8 @@ void promptComando(void);
 
 void exibeMsgStatus(const char* msg);
 
+void desenhaTelaMenu(void);
+
+void desenhaTelaVencido(void);
+
 #endif

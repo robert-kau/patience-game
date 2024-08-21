@@ -11,8 +11,8 @@ FilaEnc* criaBaralho()
     FilaEnc *baralho = criaFilaEnc();
     Carta novaCarta;
 
-    const char naipes[] = {'C', 'O', 'P', 'E'};
-    const int valores[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+    const char naipes[NUM_NAIPES] = {'C', 'O', 'P', 'E'};
+    const int valores[NUM_CARTAS_POR_NAIPE] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
 
     for (int i = 0; i < 4; i++) // Loop para os naipes
     {
@@ -25,6 +25,11 @@ FilaEnc* criaBaralho()
         }
     }
     return baralho;
+}
+
+void destroiBaralho(FilaEnc *baralho)
+{
+    destroiFilaEnc(baralho);
 }
 
 // Função para embaralhar cartas

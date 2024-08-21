@@ -10,10 +10,8 @@
 int main()
 {
     initInterface();
-    montaJogo();
-
+    initGame();
     gameLoop();
-
 
     return 0;
 }

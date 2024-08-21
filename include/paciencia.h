@@ -32,11 +32,23 @@ typedef struct {
    int numCartas;
 } MonteCompra;
 
+enum statusGame {
+    MENU,
+    EM_JOGO,
+    VENCIDO
+};
+
 void montaJogo(void);
+
+void initGame(void);
 
 void gameLoop(void);
 
 void processaComando(char* comando);
+
+enum statusGame obtemStatusJogo();
+
+void defineStatusJogo(enum statusGame status);
 
 
 #endif

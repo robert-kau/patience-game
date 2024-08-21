@@ -27,8 +27,23 @@ MonteCompra monte;
 
 Baralho *baralhoCartas;
 
+int estadoJogo;
+
 void acrescentaCartaVisivelColuna(Coluna *coluna, Carta carta);
 
+void montaJogo(void);
+
+void desmontaJogo(void);
+
+enum statusGame obtemStatusJogo()
+{
+    return(estadoJogo);
+}
+
+void defineStatusJogo(enum statusGame status)
+{
+    estadoJogo = status;
+}
 
 void criaColunas(void)
 {
@@ -44,6 +59,17 @@ void criaColunas(void)
     }
 }
 
+void destroiColunas(void)
+{
+    int i;
+
+    for(i = 0; i < NUM_COLUNAS; i++)
+    {
+        destroiPilhaEnc(coluna[i].faceDown);
+        destroiFilaEnc(coluna[i].faceUp);
+    }
+}
+
 void criaFundacoes(void)
 {
     int i;
@@ -52,6 +78,15 @@ void criaFundacoes(void)
         fundacao[i].cartas = criaPilhaEnc();
         fundacao[i].naipe = 0;
         fundacao[i].numCartas = 0;
+    }
+}
+
+void destroiFundacoes(void)
+{
+    int i;
+    for(i = 0; i < NUM_FUNDACOES; i++)
+    {
+        destroiPilhaEnc(fundacao[i].cartas);
     }
 }
 
@@ -69,6 +104,12 @@ void criaMonteCompra(Baralho *baralhoCartas)
         enfileiraFilaEnc(monte.oculto, carta);
         monte.numCartas++;
     }
+}
+
+void destroiMonteCompra()
+{
+    destroiFilaEnc(monte.oculto);
+    destroiFilaEnc(monte.visualizado);
 }
 
 int compraCarta(void)
@@ -220,6 +261,21 @@ int insereCartaFundacao(Carta carta, int indiceFundacao)
     }
 }
 
+void verificaAvancoJogo(void)
+{
+    int i, count;
+    for(i = 0; i < NUM_FUNDACOES; i++)
+    {
+        count += fundacao[i].numCartas; //acumula o numero de cartas em cada fundacao
+    }
+
+    if(count == NUM_CARTAS_BARALHO) //verifica se o numero de cartas nas fundacoes corresponde ao numero de cartas do baralho
+    {
+        //todas as cartas foram organizadas nas fundacoes, logo, jogo vencido
+        defineStatusJogo(VENCIDO);
+    }
+}
+
 // Funcao que verifica se cartas formarao cores intercaladas
 int seqValidaNaipes(char naipeOrigem, char naipeNovo)
 {
@@ -274,18 +330,36 @@ void gameLoop(void)
     // Loop principal
     while (1) 
     {
-        limpaTela();
+        switch (obtemStatusJogo())
+        {
+        case MENU:
+            desenhaTelaMenu();
 
-        desenhaMonteCompra(&monte);
+            break;
+        
+        case EM_JOGO:
+            limpaTela();
 
-        desenhaColunas(coluna);
+            desenhaMonteCompra(&monte);
 
-        desenhaFundacoes(fundacao);
+            desenhaColunas(coluna);
+
+            desenhaFundacoes(fundacao);
+
+            verificaAvancoJogo();
+
+            break;
+        
+        case VENCIDO:
+            limpaTela();
+
+            desenhaTelaVencido();
+
+            break;
+        }
 
         promptComando();
     }
-    
-    endwin(); // Finaliza a ncurses
 }
 
 int moveCartaComprada(char tipoDestino, int indexDestino)
@@ -524,6 +598,7 @@ parsed_input parse_input(char *command)
     char *pattern_pile_move = "mm%c%d";     // move da pilha de compra para qualquer
     char *pattern_pile = "c";              // compra carta
     char *pattern_exit = "exit";             // compra carta
+    char *pattern_start = "start";             // compra carta
 
     if (sscanf(command, pattern_multi_move, &parsed.source_amount,
                &parsed.source_index, &parsed.destination_index) == 3)
@@ -549,6 +624,10 @@ parsed_input parse_input(char *command)
     {
         parsed.cmd = 'e';
     }
+    else if (strcmp(command, pattern_start) == 0)
+    {
+        parsed.cmd = 's';
+    }
     else
     {
         parsed.success = 0;
@@ -560,52 +639,84 @@ void processaComando(char* comando)
 {
     parsed_input result = parse_input(comando);
 
-    if (result.success) 
+    switch (obtemStatusJogo())
     {
+    case MENU:
         if (result.cmd == 'e')
         {
             endwin(); // Finaliza a ncurses
             exit(0);
         }
 
-        //verifica destinos validos
-        else if((result.destination == 'c' && ((result.destination_index >= NUM_COLUNAS) || (result.destination_index < 0)))
-            || (result.destination == 'f' && ((result.destination_index >= NUM_FUNDACOES) || (result.destination_index < 0))))
+        if (result.cmd == 's')
         {
-            exibeMsgStatus("Coluna destino fora da faixa.");
-
+            montaJogo();
+            defineStatusJogo(EM_JOGO);
         }
+        break;
 
-        //verifica fontes validas
-        else if(result.source == 'c' && ((result.source_index >= NUM_COLUNAS) || (result.source_index < 0))){
-            exibeMsgStatus("Coluna fonte fora da faixa.");
-        }
-
-        else if(result.source == 'p') //compra carta
+    case VENCIDO:
+        if (result.cmd == 'e')
         {
-            if(compraCarta() == 0)
-                exibeMsgStatus("Carta comprada");
+            desmontaJogo();
+            endwin(); // Finaliza a ncurses
+            exit(0);
+        }
+        break;
 
-        }
-        else if(result.source == 'm') //move carta comprada
+    case EM_JOGO:
+
+        if (result.success) 
         {
-            if(moveCartaComprada(result.destination, result.destination_index) == 0)
-                exibeMsgStatus("Carta movida");
-            else
-                exibeMsgStatus("Erro ao mover carta");
-        }
-        else if(result.source == 'c') //move carta de uma coluna
+            if (result.cmd == 'e')
+            {
+                desmontaJogo();
+                endwin(); // Finaliza a ncurses
+                exit(0);
+            }
+
+            //verifica destinos validos
+            else if((result.destination == 'c' && ((result.destination_index >= NUM_COLUNAS) || (result.destination_index < 0)))
+                || (result.destination == 'f' && ((result.destination_index >= NUM_FUNDACOES) || (result.destination_index < 0))))
+            {
+                exibeMsgStatus("Coluna destino fora da faixa.");
+
+            }
+
+            //verifica fontes validas
+            else if(result.source == 'c' && ((result.source_index >= NUM_COLUNAS) || (result.source_index < 0))){
+                exibeMsgStatus("Coluna fonte fora da faixa.");
+            }
+
+            else if(result.source == 'p') //compra carta
+            {
+                if(compraCarta() == 0)
+                    exibeMsgStatus("Carta comprada");
+
+            }
+            else if(result.source == 'm') //move carta comprada
+            {
+                if(moveCartaComprada(result.destination, result.destination_index) == 0)
+                    exibeMsgStatus("Carta movida");
+                else
+                    exibeMsgStatus("Erro ao mover carta");
+            }
+            else if(result.source == 'c') //move carta de uma coluna
+            {
+                if(moveCartaColuna(result.source_amount, result.source_index, result.destination, result.destination_index) == 0)
+                    exibeMsgStatus("Carta movida");
+                else
+                    exibeMsgStatus("Erro ao mover carta");
+            }
+
+        } 
+        else 
         {
-            if(moveCartaColuna(result.source_amount, result.source_index, result.destination, result.destination_index) == 0)
-                exibeMsgStatus("Carta movida");
-            else
-                exibeMsgStatus("Erro ao mover carta");
+            exibeMsgStatus("Comando desconhecido.");
         }
 
-    } 
-    else 
-    {
-        exibeMsgStatus("Comando desconhecido.");
+    break;
+    
     }
 }
 
@@ -622,8 +733,18 @@ void montaJogo(void)
     populaColunas(baralhoCartas);
 
     criaMonteCompra(baralhoCartas);
+}
 
+void desmontaJogo(void)
+{
+    destroiBaralho(baralhoCartas);
+    destroiColunas();
+    destroiFundacoes();
+    destroiMonteCompra();
+}
 
-
+void initGame(void)
+{
+    defineStatusJogo(MENU);
 }
 
