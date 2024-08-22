@@ -43,7 +43,7 @@ Este código foi desenvolvido como trabalho final da disciplina de Estrutura de 
     ```
 2. Navegue até o diretório do projeto:
     ```bash
-    cd klondike-solitaire
+    cd patience-game
     ```
 3. Compile o código utilizando o Makefile:
     ```bash
